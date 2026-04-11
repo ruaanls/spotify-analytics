@@ -13,9 +13,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthService implements AuthServiceImpl
 {
-    private SpotifyServiceImpl spotifyService;
-    private TokenServiceImpl tokenService;
-    private UserRepoServiceImpl userRepoService;
+    private final SpotifyServiceImpl spotifyService;
+    private final TokenServiceImpl tokenService;
+    private final UserRepoServiceImpl userRepoService;
+
+    public AuthService(SpotifyServiceImpl spotifyService, TokenServiceImpl tokenService, UserRepoServiceImpl userRepoService) {
+        this.spotifyService = spotifyService;
+        this.tokenService = tokenService;
+        this.userRepoService = userRepoService;
+    }
 
 
     @Override

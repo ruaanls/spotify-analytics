@@ -4,10 +4,16 @@ import br.com.spotifyanalytics.application.dto.SpotifyUser;
 import br.com.spotifyanalytics.domain.model.Role;
 import br.com.spotifyanalytics.domain.repository.UserRepoServiceImpl;
 import br.com.spotifyanalytics.infra.persistence.entity.UsuariosJpa;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public class UserRepoService implements UserRepoServiceImpl {
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    public UserRepoService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public UsuariosJpa findOrCreate(SpotifyUser spotifyUser) {

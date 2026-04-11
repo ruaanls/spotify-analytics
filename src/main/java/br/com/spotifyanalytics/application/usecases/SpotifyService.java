@@ -6,6 +6,7 @@ import br.com.spotifyanalytics.application.dto.TopArtistsResponse;
 import br.com.spotifyanalytics.application.service.SpotifyServiceImpl;
 import br.com.spotifyanalytics.infra.config.WebClientConfig;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -16,8 +17,11 @@ public class SpotifyService implements SpotifyServiceImpl
 {
     private final WebClient spotifyApiWebClient;
     private final WebClient spotifyAuthWebClient;
+    @Value("4501e1f06a704af1a78fec28e752d898")
     private String clientId;
+    @Value("8f01c6631d6b4a5091e0973e3fe6a950")
     private String clientSecret;
+    @Value("http://127.0.0.1:8080/auth/callback")
     private String redirectUri;
 
     public SpotifyService(
