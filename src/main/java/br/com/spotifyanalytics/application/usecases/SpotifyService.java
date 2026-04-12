@@ -1,15 +1,27 @@
 package br.com.spotifyanalytics.application.usecases;
 
+import br.com.spotifyanalytics.application.dto.EstatisticasFreeDTO;
 import br.com.spotifyanalytics.application.dto.SpotifyUser;
 import br.com.spotifyanalytics.application.dto.TokenResponse;
 import br.com.spotifyanalytics.application.dto.TopArtistsResponse;
 import br.com.spotifyanalytics.application.service.SpotifyServiceImpl;
 import br.com.spotifyanalytics.infra.config.WebClientConfig;
+import org.apache.hc.core5.http.ParseException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.model_objects.specification.AudioFeatures;
+import se.michaelthelin.spotify.model_objects.specification.Paging;
+import se.michaelthelin.spotify.model_objects.specification.Track;
+import se.michaelthelin.spotify.requests.data.personalization.simplified.GetUsersTopTracksRequest;
+import se.michaelthelin.spotify.requests.data.tracks.GetAudioFeaturesForSeveralTracksRequest;
 
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Base64;
 
 @Service
@@ -24,12 +36,15 @@ public class SpotifyService implements SpotifyServiceImpl
     @Value("http://127.0.0.1:8080/auth/callback")
     private String redirectUri;
 
+    private final SpotifyApi spotifyApi;
+
     public SpotifyService(
             @Qualifier("spotifyApiWebClient") WebClient spotifyApiWebClient,
-            @Qualifier("spotifyAuthWebClient") WebClient spotifyAuthWebClient
+            @Qualifier("spotifyAuthWebClient") WebClient spotifyAuthWebClient, SpotifyApi spotifyApi
     ) {
         this.spotifyApiWebClient = spotifyApiWebClient;
         this.spotifyAuthWebClient = spotifyAuthWebClient;
+        this.spotifyApi = spotifyApi;
     }
 
 
@@ -68,6 +83,19 @@ public class SpotifyService implements SpotifyServiceImpl
                 .block();
     }
 
+    @Override
+    public EstatisticasFreeDTO calculaEstatisticasFree(String accessToken) {
+        spotifyApi.setAccessToken(accessToken);
+        Track[] topTracks = obterTopTracks();
+        String[] ids = extrairIds(topTracks);
+        AudioFeatures[] audioFeatures = obterAudioFeature(ids);
+
+        double energiaMedia = calcularMediaEnergia(audioFeatures);
+        double valenciaMedia = calcularMediaValencia(audioFeatures);
+
+        return new EstatisticasFreeDTO(energiaMedia,valenciaMedia);
+    }
+
     public TopArtistsResponse getTopArtists(String accessToken) {
 
         return spotifyApiWebClient.get()
@@ -80,4 +108,60 @@ public class SpotifyService implements SpotifyServiceImpl
                 .bodyToMono(TopArtistsResponse.class)
                 .block();
     }
+
+
+    private Track[] obterTopTracks()
+    {
+        try{
+            GetUsersTopTracksRequest request = spotifyApi.getUsersTopTracks()
+                    .limit(10)
+                    .time_range("medium_term")
+                    .build();
+            Paging<Track> paging = request.execute();
+            return paging.getItems();
+        }catch (Exception e) {
+            throw new RuntimeException("Erro ao obter top tracks do Spotify", e);
+        }
+    }
+
+
+    private AudioFeatures[] obterAudioFeature(String [] ids)
+    {
+        try
+        {
+            String idsParam = String.join(",", ids);
+            GetAudioFeaturesForSeveralTracksRequest request = spotifyApi
+                    .getAudioFeaturesForSeveralTracks(idsParam)
+                    .build();
+            return request.execute();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao obter audio features do Spotify", e);
+        }
+    }
+
+
+    private String[] extrairIds(Track [] tracks)
+    {
+        return Arrays.stream(tracks)
+                .map(Track::getId)
+                .toArray(String[]::new);
+    }
+
+    private double calcularMediaEnergia(AudioFeatures[] features)
+    {
+        return Arrays.stream(features)
+                .mapToDouble(AudioFeatures::getEnergy)
+                .average()
+                .orElse(0.0);
+    }
+
+    private double calcularMediaValencia(AudioFeatures[] features)
+    {
+        return Arrays.stream(features)
+                .mapToDouble(AudioFeatures::getValence)
+                .average()
+                .orElse(0.0);
+    }
+
+
 }

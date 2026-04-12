@@ -32,6 +32,7 @@ public class AuthService implements AuthServiceImpl
     @Override
     public JwtResponseDTO spotifyAuth(String code) {
         TokenResponse tokenResponse =  spotifyService.getToken(code);
+
         SpotifyUser spotifyUser =  spotifyService.getUser(tokenResponse.getAccess_token());
         UsuariosJpa usuariosJpa = userRepoService.findOrCreate(spotifyUser);
         JwtResponseDTO jwtResponseDTO = new JwtResponseDTO();

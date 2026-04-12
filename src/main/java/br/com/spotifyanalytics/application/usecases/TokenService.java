@@ -15,12 +15,12 @@ public class TokenService implements TokenServiceImpl
 {
 
     private final String SECRET = "my-secret-key";
-    private final long Expiration = 35000;
+    private final long Expiration = 3500000;
 
     @Override
     public String generateToken(UsuariosJpa user) {
         return JWT.create()
-                .withSubject(user.getId().toString())
+                .withSubject(user.getSpotifyId())
                 .withClaim("role", user.getTipo().name())
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis()+Expiration))

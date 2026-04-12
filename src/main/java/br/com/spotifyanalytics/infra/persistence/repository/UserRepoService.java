@@ -20,9 +20,17 @@ public class UserRepoService implements UserRepoServiceImpl {
         return userRepository.findBySpotifyId(spotifyUser.getId())
                 .map(usuarioExistente ->
                 {
-                    usuarioExistente.setEmail(spotifyUser.getEmail());
-                    usuarioExistente.setNome(spotifyUser.getDisplay_name());
-                    return userRepository.save(usuarioExistente);
+                    if(usuarioExistente.getEmail().equals(spotifyUser.getEmail()) && usuarioExistente.getNome().equals(spotifyUser.getDisplay_name()))
+                    {
+                        usuarioExistente.setEmail(spotifyUser.getEmail());
+                        usuarioExistente.setNome(spotifyUser.getDisplay_name());
+                        return userRepository.save(usuarioExistente);
+                    }
+                    else
+                    {
+                        return null;
+                    }
+
                 })
                 .orElseGet(() ->
                 {
