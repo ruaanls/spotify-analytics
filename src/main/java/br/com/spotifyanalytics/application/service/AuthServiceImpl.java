@@ -5,5 +5,7 @@ import br.com.spotifyanalytics.application.dto.JwtResponseDTO;
 public interface AuthServiceImpl
 {
     String spotifyAuthRedirect();
-    JwtResponseDTO spotifyAuth(String code);
+    void spotifyAuth(String code);
+    JwtResponseDTO captureToken(String username);
+
 }

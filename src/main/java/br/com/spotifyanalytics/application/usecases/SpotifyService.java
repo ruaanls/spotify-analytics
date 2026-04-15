@@ -9,6 +9,7 @@ import br.com.spotifyanalytics.infra.config.WebClientConfig;
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import se.michaelthelin.spotify.SpotifyApi;
@@ -21,6 +22,7 @@ import se.michaelthelin.spotify.requests.data.tracks.GetAudioFeaturesForSeveralT
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Base64;
 
@@ -37,14 +39,17 @@ public class SpotifyService implements SpotifyServiceImpl
     private String redirectUri;
 
     private final SpotifyApi spotifyApi;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final Duration TOKEN_TTL = Duration.ofMinutes(58);
 
     public SpotifyService(
             @Qualifier("spotifyApiWebClient") WebClient spotifyApiWebClient,
-            @Qualifier("spotifyAuthWebClient") WebClient spotifyAuthWebClient, SpotifyApi spotifyApi
+            @Qualifier("spotifyAuthWebClient") WebClient spotifyAuthWebClient, SpotifyApi spotifyApi, RedisTemplate<String, Object> redisTemplate
     ) {
         this.spotifyApiWebClient = spotifyApiWebClient;
         this.spotifyAuthWebClient = spotifyAuthWebClient;
         this.spotifyApi = spotifyApi;
+        this.redisTemplate = redisTemplate;
     }
 
 
@@ -84,7 +89,8 @@ public class SpotifyService implements SpotifyServiceImpl
     }
 
     @Override
-    public EstatisticasFreeDTO calculaEstatisticasFree(String accessToken) {
+    public EstatisticasFreeDTO calculaEstatisticasFree(String username) {
+        String accessToken = getTokenRedis(username,"accessToken");
         spotifyApi.setAccessToken(accessToken);
         Track[] topTracks = obterTopTracks();
         String[] ids = extrairIds(topTracks);
@@ -95,6 +101,8 @@ public class SpotifyService implements SpotifyServiceImpl
 
         return new EstatisticasFreeDTO(energiaMedia,valenciaMedia);
     }
+
+
 
     public TopArtistsResponse getTopArtists(String accessToken) {
 
@@ -108,6 +116,32 @@ public class SpotifyService implements SpotifyServiceImpl
                 .bodyToMono(TopArtistsResponse.class)
                 .block();
     }
+
+    @Override
+    public void saveTokenRedis(String id, String value, String type)
+    {
+        String key = buildKey(id, type);
+        redisTemplate.opsForValue().set(key, value, TOKEN_TTL);
+    }
+
+    @Override
+    public String getTokenRedis(String id, String type) {
+        String key = buildKey(id, type);
+        return (String) redisTemplate.opsForValue().get(key);
+    }
+
+    @Override
+    public void deleteTokenRedis(String id, String type) {
+        String key = buildKey(id, type);
+        redisTemplate.delete(key);
+    }
+
+
+    private String buildKey(String id, String type)
+    {
+        return type+":" + id;
+    }
+
 
 
     private Track[] obterTopTracks()
