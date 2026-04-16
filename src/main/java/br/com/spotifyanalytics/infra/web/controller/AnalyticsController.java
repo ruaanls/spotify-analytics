@@ -27,9 +27,9 @@ public class AnalyticsController
     private final SpotifyServiceImpl spotifyService;
 
     @GetMapping("/free")
-    public ResponseEntity<EstatisticasFreeDTO> getEstatisticasFree(@AuthenticationPrincipal Jwt jwt)
+    public ResponseEntity<EstatisticasFreeDTO> getEstatisticasFree(@AuthenticationPrincipal String username)
     {
-        String username = jwt.getSubject();
+
         EstatisticasFreeDTO estatisticas = spotifyService.calculaEstatisticasFree(username);
         return new ResponseEntity<>(estatisticas, HttpStatus.OK);
     }

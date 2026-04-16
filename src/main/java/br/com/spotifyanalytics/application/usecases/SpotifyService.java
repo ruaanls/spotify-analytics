@@ -25,6 +25,10 @@ import java.lang.reflect.Array;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class SpotifyService implements SpotifyServiceImpl
@@ -93,14 +97,39 @@ public class SpotifyService implements SpotifyServiceImpl
         String accessToken = getTokenRedis(username,"accessToken");
         spotifyApi.setAccessToken(accessToken);
         Track[] topTracks = obterTopTracks();
-        String[] ids = extrairIds(topTracks);
-        AudioFeatures[] audioFeatures = obterAudioFeature(ids);
+        if (topTracks == null || topTracks.length == 0) {
+            throw new RuntimeException("Nenhuma faixa encontrada para o período.");
+        }
 
-        double energiaMedia = calcularMediaEnergia(audioFeatures);
-        double valenciaMedia = calcularMediaValencia(audioFeatures);
+        // 1. Artista mais ouvido (considerando o primeiro artista de cada faixa)
+        String topArtist = Arrays.stream(topTracks)
+                .map(track -> track.getArtists()[0].getName())
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("Desconhecido");
 
-        return new EstatisticasFreeDTO(energiaMedia,valenciaMedia);
+        // 2. Álbum mais ouvido
+        String topAlbum = Arrays.stream(topTracks)
+                .map(track -> track.getAlbum().getName() + " - " + track.getArtists()[0].getName())
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("Desconhecido");
+
+        String topTrack = Arrays.stream(topTracks)
+                .map(Track::getName)
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("Desconhecido");
+        return new EstatisticasFreeDTO(topArtist, topAlbum, topTrack);
     }
+
+
 
 
 
@@ -149,7 +178,7 @@ public class SpotifyService implements SpotifyServiceImpl
         try{
             GetUsersTopTracksRequest request = spotifyApi.getUsersTopTracks()
                     .limit(10)
-                    .time_range("medium_term")
+                    .time_range("short_term")
                     .build();
             Paging<Track> paging = request.execute();
             return paging.getItems();

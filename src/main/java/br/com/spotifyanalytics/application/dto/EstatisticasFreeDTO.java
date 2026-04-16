@@ -9,17 +9,11 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-
+@AllArgsConstructor
 public class EstatisticasFreeDTO
 {
-    private Double energiaMedia;
-    private Double valenciaMedia;
-    private LocalDateTime atualizadoEm;
-
-    public EstatisticasFreeDTO(Double energiaMedia, Double valenciaMedia) {
-        this.energiaMedia = energiaMedia;
-        this.valenciaMedia = valenciaMedia;
-        this.atualizadoEm = LocalDateTime.now();
-    }
+    private String artistaMaisOuvido;
+    private String albumMaisOuvido;
+    private String musicaMaisOuvida;
 
 }
