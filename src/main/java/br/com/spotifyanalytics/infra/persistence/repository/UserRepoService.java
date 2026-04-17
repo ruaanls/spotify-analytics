@@ -20,7 +20,7 @@ public class UserRepoService implements UserRepoServiceImpl {
         return userRepository.findBySpotifyId(spotifyUser.getId())
                 .map(usuarioExistente ->
                 {
-                    if(usuarioExistente.getEmail().equals(spotifyUser.getEmail()) && usuarioExistente.getNome().equals(spotifyUser.getDisplay_name()))
+                    if(!usuarioExistente.getEmail().equals(spotifyUser.getEmail()) || !usuarioExistente.getNome().equals(spotifyUser.getDisplay_name()))
                     {
                         usuarioExistente.setEmail(spotifyUser.getEmail());
                         usuarioExistente.setNome(spotifyUser.getDisplay_name());
@@ -28,7 +28,8 @@ public class UserRepoService implements UserRepoServiceImpl {
                     }
                     else
                     {
-                        return null;
+                        usuarioExistente.setTipo(Role.FREE);
+                        return usuarioExistente;
                     }
 
                 })

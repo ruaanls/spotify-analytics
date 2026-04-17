@@ -1,32 +1,24 @@
 package br.com.spotifyanalytics.application.usecases;
 
-import br.com.spotifyanalytics.application.dto.EstatisticasFreeDTO;
-import br.com.spotifyanalytics.application.dto.SpotifyUser;
-import br.com.spotifyanalytics.application.dto.TokenResponse;
-import br.com.spotifyanalytics.application.dto.TopArtistsResponse;
+import br.com.spotifyanalytics.application.dto.*;
 import br.com.spotifyanalytics.application.service.SpotifyServiceImpl;
-import br.com.spotifyanalytics.infra.config.WebClientConfig;
-import org.apache.hc.core5.http.ParseException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import se.michaelthelin.spotify.SpotifyApi;
-import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
-import se.michaelthelin.spotify.model_objects.specification.AudioFeatures;
-import se.michaelthelin.spotify.model_objects.specification.Paging;
+import se.michaelthelin.spotify.model_objects.specification.Artist;
+import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
+import se.michaelthelin.spotify.model_objects.specification.PlayHistory;
 import se.michaelthelin.spotify.model_objects.specification.Track;
+import se.michaelthelin.spotify.requests.data.personalization.simplified.GetUsersTopArtistsRequest;
 import se.michaelthelin.spotify.requests.data.personalization.simplified.GetUsersTopTracksRequest;
-import se.michaelthelin.spotify.requests.data.tracks.GetAudioFeaturesForSeveralTracksRequest;
-
-import java.io.IOException;
-import java.lang.reflect.Array;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Map;
-import java.util.Objects;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.*;
+
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -63,7 +55,7 @@ public class SpotifyService implements SpotifyServiceImpl
                 "?client_id=" + clientId +
                 "&response_type=code" +
                 "&redirect_uri=" + redirectUri +
-                "&scope=user-top-read user-read-email";
+                "&scope=user-top-read user-read-email user-read-recently-played";
     }
 
     @Override
@@ -96,7 +88,7 @@ public class SpotifyService implements SpotifyServiceImpl
     public EstatisticasFreeDTO calculaEstatisticasFree(String username) {
         String accessToken = getTokenRedis(username,"accessToken");
         spotifyApi.setAccessToken(accessToken);
-        Track[] topTracks = obterTopTracks();
+        Track[] topTracks = obterTopTracks("short_term", 20);
         if (topTracks == null || topTracks.length == 0) {
             throw new RuntimeException("Nenhuma faixa encontrada para o período.");
         }
@@ -129,22 +121,32 @@ public class SpotifyService implements SpotifyServiceImpl
         return new EstatisticasFreeDTO(topArtist, topAlbum, topTrack);
     }
 
+    @Override
+    public EstatisticasPremiumDTO calculaEstatisticasPagas(String username) {
+        String accessToken = getTokenRedis(username, "accessToken");
+        spotifyApi.setAccessToken(accessToken);
 
+        Track[] topTracks = obterTopTracks("medium_term", 15);
+        Artist[] topArtists = obterTopArtists("medium_term", 15);
+        List<PlayHistory> historicoRecente = obterHistoricoRecente(15);
 
+        List<String> top5Artistas = Arrays.stream(topArtists)
+                .limit(5)
+                .map(Artist::getName)
+                .collect(Collectors.toList());
 
+        String faixaMaisPopular = Arrays.stream(topTracks)
+                .findFirst()
+                .map(track -> track.getName() + " - " + track.getArtists()[0].getName())
+                .orElse("Desconhecida");
+        String periodoDiaMaisAtivo = calcularPeriodoDiaMaisAtivo(historicoRecente);
 
-    public TopArtistsResponse getTopArtists(String accessToken) {
-
-        return spotifyApiWebClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/v1/me/top/artists")
-                        .queryParam("limit", 10)
-                        .build())
-                .header("Authorization", "Bearer " + accessToken)
-                .retrieve()
-                .bodyToMono(TopArtistsResponse.class)
-                .block();
+        // 🔄 MUDANÇA 3: DTO agora tem apenas três campos simples
+        return new EstatisticasPremiumDTO(periodoDiaMaisAtivo, top5Artistas, faixaMaisPopular);
     }
+
+
+
 
     @Override
     public void saveTokenRedis(String id, String value, String type)
@@ -159,11 +161,8 @@ public class SpotifyService implements SpotifyServiceImpl
         return (String) redisTemplate.opsForValue().get(key);
     }
 
-    @Override
-    public void deleteTokenRedis(String id, String type) {
-        String key = buildKey(id, type);
-        redisTemplate.delete(key);
-    }
+
+
 
 
     private String buildKey(String id, String type)
@@ -172,59 +171,71 @@ public class SpotifyService implements SpotifyServiceImpl
     }
 
 
-
-    private Track[] obterTopTracks()
-    {
-        try{
+    private Track[] obterTopTracks(String timeRange, int limit) {
+        try {
             GetUsersTopTracksRequest request = spotifyApi.getUsersTopTracks()
-                    .limit(10)
-                    .time_range("short_term")
+                    .limit(limit)
+                    .time_range(timeRange)
                     .build();
-            Paging<Track> paging = request.execute();
-            return paging.getItems();
-        }catch (Exception e) {
-            throw new RuntimeException("Erro ao obter top tracks do Spotify", e);
-        }
-    }
-
-
-    private AudioFeatures[] obterAudioFeature(String [] ids)
-    {
-        try
-        {
-            String idsParam = String.join(",", ids);
-            GetAudioFeaturesForSeveralTracksRequest request = spotifyApi
-                    .getAudioFeaturesForSeveralTracks(idsParam)
-                    .build();
-            return request.execute();
+            return request.execute().getItems();
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao obter audio features do Spotify", e);
+            throw new RuntimeException("Erro ao obter top tracks", e);
         }
     }
 
 
-    private String[] extrairIds(Track [] tracks)
-    {
-        return Arrays.stream(tracks)
-                .map(Track::getId)
-                .toArray(String[]::new);
+    private Artist[] obterTopArtists(String timeRange, int limit) {
+        try {
+            GetUsersTopArtistsRequest request = spotifyApi.getUsersTopArtists()
+                    .limit(limit)
+                    .time_range(timeRange)
+                    .build();
+            return request.execute().getItems();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao obter top artists", e);
+        }
     }
 
-    private double calcularMediaEnergia(AudioFeatures[] features)
-    {
-        return Arrays.stream(features)
-                .mapToDouble(AudioFeatures::getEnergy)
-                .average()
-                .orElse(0.0);
+    private List<PlayHistory> obterHistoricoRecente(int limite) {
+        try {
+            return Arrays.asList(
+                    spotifyApi.getCurrentUsersRecentlyPlayedTracks()
+                            .limit(limite)
+                            .build()
+                            .execute()
+                            .getItems()
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao buscar histórico recente", e);
+        }
     }
 
-    private double calcularMediaValencia(AudioFeatures[] features)
-    {
-        return Arrays.stream(features)
-                .mapToDouble(AudioFeatures::getValence)
-                .average()
-                .orElse(0.0);
-    }
+    private String calcularPeriodoDiaMaisAtivo(List<PlayHistory> historico) {
+        Map<String, Long> contagemPeriodos = historico.stream()
+                .map(play -> {
+                    LocalTime hora = play.getPlayedAt()
+                            .toInstant()
+                            .atZone(ZoneId.of("America/Sao_Paulo")) // fuso correto
+                            .toLocalTime();
 
+                    int h = hora.getHour();
+
+                    if (h >= 6 && h < 12) {
+                        return "Manhã (06h-12h)";
+                    } else if (h >= 12 && h < 18) {
+                        return "Tarde (12h-18h)";
+                    } else if (h >= 18 && h < 23) {
+                        return "Noite (18h-23h)";
+                    } else {
+                        return "Madrugada (23h-06h)";
+                    }
+                })
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+        return contagemPeriodos.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("Indefinido");
+    }
 
 }

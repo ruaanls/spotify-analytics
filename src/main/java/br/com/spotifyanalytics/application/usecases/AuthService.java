@@ -35,8 +35,7 @@ public class AuthService implements AuthServiceImpl
     public void spotifyAuth(String code) {
         TokenResponse tokenResponse =  spotifyService.getToken(code);
         SpotifyUser spotifyUser =  spotifyService.getUser(tokenResponse.getAccess_token());
-        UsuariosJpa usuariosJpa = userRepoService.findOrCreate(spotifyUser);
-        spotifyService.saveTokenRedis(usuariosJpa.getSpotifyId(),tokenResponse.getAccess_token(),"accessToken");
+        spotifyService.saveTokenRedis(spotifyUser.getId(),tokenResponse.getAccess_token(),"accessToken");
     }
 
     @Override

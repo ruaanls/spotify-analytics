@@ -43,9 +43,6 @@ public class CustomAutheEntryPoint implements AuthenticationEntryPoint
             error = new AuthInvalid(HttpStatus.UNAUTHORIZED, "Login ou senha Incorretos, por favor tente novamente");
             writeErrorResponse(response, error);
 
-        } else if (authException instanceof InternalAuthenticationServiceException) {
-            error = new AuthInvalid(HttpStatus.UNAUTHORIZED, "Usuário não existe no banco de dados, por favor realize o cadastro primeiro!");
-            writeErrorResponse(response, error);
         } else {
             // Verifica se é um caso de token JWT ausente
             String authHeader = request.getHeader("Authorization");
