@@ -1,6 +1,8 @@
 package br.com.spotifyanalytics.infra.config.security;
 
 import br.com.spotifyanalytics.application.service.TokenServiceImpl;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,9 +41,12 @@ public class JwtAuthenticatorFilter extends OncePerRequestFilter
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId,null, List.of(authority));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-            catch (Exception e)
-            {
-                throw new ServletException("Token Inválido");
+            catch (TokenExpiredException e) {
+                request.setAttribute("exception", e);
+            } catch (JWTVerificationException e) {
+                request.setAttribute("exception", e);
+            } catch (Exception e) {
+                request.setAttribute("exception", e);
             }
         }
         filterChain.doFilter(request, response);
@@ -50,12 +55,9 @@ public class JwtAuthenticatorFilter extends OncePerRequestFilter
     private String recoverToken(HttpServletRequest request) {
 
         String authHeader = request.getHeader("Authorization");
-
         if (authHeader == null) {
             return null;
         }
-
-        // formato esperado: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6...
         return authHeader.replace("Bearer ", "");
     }
 }

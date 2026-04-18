@@ -1,9 +1,10 @@
-package br.com.spotifyanalytics.infra.persistence.repository;
+package br.com.spotifyanalytics.infra.persistence.adapter;
 
 import br.com.spotifyanalytics.application.dto.SpotifyUser;
 import br.com.spotifyanalytics.domain.model.Role;
 import br.com.spotifyanalytics.domain.repository.UserRepoServiceImpl;
 import br.com.spotifyanalytics.infra.persistence.entity.UsuariosJpa;
+import br.com.spotifyanalytics.infra.persistence.repository.UserRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -28,10 +29,8 @@ public class UserRepoService implements UserRepoServiceImpl {
                     }
                     else
                     {
-                        usuarioExistente.setTipo(Role.FREE);
                         return usuarioExistente;
                     }
-
                 })
                 .orElseGet(() ->
                 {
@@ -43,6 +42,4 @@ public class UserRepoService implements UserRepoServiceImpl {
                     return userRepository.save(novoUsuario);
                 });
     }
-
-
 }

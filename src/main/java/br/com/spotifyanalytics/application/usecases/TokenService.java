@@ -6,6 +6,9 @@ import br.com.spotifyanalytics.domain.model.Usuarios;
 import br.com.spotifyanalytics.infra.persistence.entity.UsuariosJpa;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -19,20 +22,39 @@ public class TokenService implements TokenServiceImpl
 
     @Override
     public String generateToken(UsuariosJpa user) {
-        return JWT.create()
-                .withSubject(user.getSpotifyId())
-                .withClaim("role", user.getTipo().name())
-                .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis()+Expiration))
-                .sign(Algorithm.HMAC256(SECRET));
+        try
+        {
+            return JWT.create()
+                    .withSubject(user.getSpotifyId())
+                    .withClaim("role", user.getTipo().name())
+                    .withIssuedAt(new Date())
+                    .withExpiresAt(new Date(System.currentTimeMillis()+Expiration))
+                    .sign(Algorithm.HMAC256(SECRET));
+        }
+        catch (JWTCreationException e)
+        {
+            throw new RuntimeException("Erro ao gerar token: ", e.getCause());
+        }
+
     }
 
     @Override
     public String validateToken(String token) {
-        return JWT.require(Algorithm.HMAC256(SECRET))
-                .build()
-                .verify(token)
-                .getSubject();
+        try
+        {
+            return JWT.require(Algorithm.HMAC256(SECRET))
+                    .build()
+                    .verify(token)
+                    .getSubject();
+        }
+        catch (TokenExpiredException e)
+        {
+            throw new TokenExpiredException("Token JWT Expirado por favor, realize um login novamente", e.getExpiredOn());
+        }
+        catch (JWTVerificationException e) {
+            throw new JWTVerificationException("Token JWT inválido por favor, realize um login novamente ", e.getCause());
+        }
+
     }
 
     @Override
