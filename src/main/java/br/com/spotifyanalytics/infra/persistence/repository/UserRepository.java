@@ -10,4 +10,5 @@ public interface UserRepository extends JpaRepository<UsuariosJpa, Long>
 {
     Optional<UsuariosJpa> findByEmail(String email);
     Optional<UsuariosJpa> findBySpotifyId(String id);
+    void deleteBySpotifyId(String id);
 }

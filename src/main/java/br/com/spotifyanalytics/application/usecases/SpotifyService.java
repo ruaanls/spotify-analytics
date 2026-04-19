@@ -17,6 +17,7 @@ import java.util.*;
 
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class SpotifyService implements SpotifyServiceImpl
@@ -31,62 +32,52 @@ public class SpotifyService implements SpotifyServiceImpl
 
     @Override
     public EstatisticasFreeDTO calculaEstatisticasFree(String username) {
-        String accessToken = redisService.getTokenRedis(username,"accessToken");
-        spotifyApi.setAccessToken(accessToken);
+        spotifyApi.setAccessToken(redisService.getTokenRedis(username, "accessToken"));
         Track[] topTracks = obterTopTracks("short_term", 20);
 
-        // 1. Artista mais ouvido (considerando o primeiro artista de cada faixa)
-        String topArtist = Arrays.stream(topTracks)
-                .map(track -> track.getArtists()[0].getName())
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-                .entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse("Desconhecido");
-
-        // 2. Álbum mais ouvido
-        String topAlbum = Arrays.stream(topTracks)
-                .map(track -> track.getAlbum().getName() + " - " + track.getArtists()[0].getName())
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-                .entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse("Desconhecido");
-
-        String topTrack = Arrays.stream(topTracks)
-                .map(Track::getName)
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-                .entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse("Desconhecido");
-        return new EstatisticasFreeDTO(topArtist, topAlbum, topTrack);
+        return new EstatisticasFreeDTO(
+                calcularMaisFrequente(Arrays.stream(topTracks).map(t -> t.getArtists()[0].getName())),
+                calcularMaisFrequente(Arrays.stream(topTracks).map(t -> t.getAlbum().getName() + " - " + t.getArtists()[0].getName())),
+                calcularMaisFrequente(Arrays.stream(topTracks).map(Track::getName))
+        );
     }
 
     @Override
     public EstatisticasPremiumDTO calculaEstatisticasPagas(String username) {
-        String accessToken = redisService.getTokenRedis(username, "accessToken");
-        spotifyApi.setAccessToken(accessToken);
+        spotifyApi.setAccessToken(redisService.getTokenRedis(username, "accessToken"));
 
         Track[] topTracks = obterTopTracks("medium_term", 15);
         Artist[] topArtists = obterTopArtists("medium_term", 15);
-        List<PlayHistory> historicoRecente = obterHistoricoRecente(15);
 
-        List<String> top5Artistas = Arrays.stream(topArtists)
+        return new EstatisticasPremiumDTO(
+                calcularPeriodoDiaMaisAtivo(obterHistoricoRecente(15)),
+                extrairTop5Artistas(topArtists),
+                extrairFaixaMaisPopular(topTracks)
+        );
+    }
+
+    private String calcularMaisFrequente(Stream<String> stream) {
+        return stream
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("Desconhecido");
+    }
+
+    private List<String> extrairTop5Artistas(Artist[] topArtists) {
+        return Arrays.stream(topArtists)
                 .limit(5)
                 .map(Artist::getName)
                 .collect(Collectors.toList());
-
-        String faixaMaisPopular = Arrays.stream(topTracks)
-                .findFirst()
-                .map(track -> track.getName() + " - " + track.getArtists()[0].getName())
-                .orElse("Desconhecida");
-        String periodoDiaMaisAtivo = calcularPeriodoDiaMaisAtivo(historicoRecente);
-
-        // 🔄 MUDANÇA 3: DTO agora tem apenas três campos simples
-        return new EstatisticasPremiumDTO(periodoDiaMaisAtivo, top5Artistas, faixaMaisPopular);
     }
 
+    private String extrairFaixaMaisPopular(Track[] topTracks) {
+        return Arrays.stream(topTracks)
+                .findFirst()
+                .map(t -> t.getName() + " - " + t.getArtists()[0].getName())
+                .orElse("Desconhecida");
+    }
 
     private Track[] obterTopTracks(String timeRange, int limit) {
         try {

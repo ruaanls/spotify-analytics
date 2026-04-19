@@ -1,7 +1,6 @@
 package br.com.spotifyanalytics.domain.model;
 
 import br.com.spotifyanalytics.infra.persistence.entity.AssinaturasJpa;
-import br.com.spotifyanalytics.infra.persistence.entity.EstatisticasUsuarioJPA;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,7 +28,7 @@ public class Usuarios
 
     private LocalDateTime criadoEm;
 
-    private EstatisticasUsuarioJPA estatisticas;
+    //private EstatisticasUsuarioJPA estatisticas;
 
     private List<AssinaturasJpa> assinaturas = new ArrayList<>();
 
