@@ -1,6 +1,5 @@
 package br.com.spotifyanalytics.infra.web.controller;
 
-import br.com.spotifyanalytics.application.dto.EstatisticasFreeDTO;
 import br.com.spotifyanalytics.domain.repository.UserRepoServiceImpl;
 import br.com.spotifyanalytics.infra.persistence.entity.UsuariosJpa;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,6 @@ public class UserController
     public ResponseEntity<UsuariosJpa> getUser(@AuthenticationPrincipal String username)
     {
         UsuariosJpa usuariosJpa = userRepoService.findBySpotifyId(username);
-
         return new ResponseEntity<>(usuariosJpa, HttpStatus.OK);
     }
 

@@ -1,11 +1,14 @@
 package br.com.spotifyanalytics.infra.web.handler;
 
 import br.com.spotifyanalytics.application.exception.*;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+@RestControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler
 {
     @ExceptionHandler(DatabaseException.class)
@@ -34,6 +37,13 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler
     {
         ErrorException Exception = new ErrorException(HttpStatus.SERVICE_UNAVAILABLE,exception.getMessage());
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Exception);
+    }
+
+    @ExceptionHandler(RedisConnectionFailureException.class)
+    private ResponseEntity<ErrorException> redisConnectionHandler(RedisConnectionFailureException exception)
+    {
+        ErrorException error = new ErrorException(HttpStatus.SERVICE_UNAVAILABLE, "Serviço temporariamente indisponível. Tente novamente mais tarde.");
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
     }
 
     @ExceptionHandler(Exception.class)
