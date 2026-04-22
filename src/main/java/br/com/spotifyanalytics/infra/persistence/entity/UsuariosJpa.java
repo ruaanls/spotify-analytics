@@ -1,6 +1,7 @@
 package br.com.spotifyanalytics.infra.persistence.entity;
 
 import br.com.spotifyanalytics.domain.model.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,8 +21,7 @@ import java.util.List;
 public class UsuariosJpa implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "usuario_seq")
-    @SequenceGenerator(name = "usuario_seq", sequenceName = "usuarios_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "spotify_id", unique = true, length = 100)
@@ -39,8 +39,14 @@ public class UsuariosJpa implements UserDetails {
     @Column(name = "criado_em", updatable = false)
     private LocalDateTime criadoEm;
 
-    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private EstatisticasUsuarioJPA estatisticas;
+    // substituiu @OneToOne por @OneToMany para suportar histórico
+
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<EstatisticasFreeJpa> estatisticasFree;
+
+
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<EstatisticasPremiumJPA> estatisticasPremium;
 
     @PrePersist
     protected void onCreate() {
@@ -94,5 +100,13 @@ public class UsuariosJpa implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public void setEstatisticasFree(EstatisticasFreeJpa estatisticasFree) {
+        this.estatisticasFree.add(estatisticasFree);
+    }
+
+    public void setEstatisticasPremium(EstatisticasPremiumJPA estatisticasPremium) {
+        this.estatisticasPremium.add(estatisticasPremium);
     }
 }

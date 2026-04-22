@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 @Getter
 @Setter
-public class AuthInvalid
+public class ErrorException
 {
     private HttpStatus status;
     private String message;

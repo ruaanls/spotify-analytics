@@ -38,21 +38,14 @@ public class SecurityConfig
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-
-                        // 🔓 endpoints públicos
                         .requestMatchers("/auth/**").permitAll()
-
-                        // 🔐 roles
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/premium/**").hasRole("PREMIUM")
-
-
-                        // 🔒 autenticado
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(customAutheEntryPoint)
-                        .accessDeniedHandler(customAccessDeniedHandler) // adiciona isso
+                        .accessDeniedHandler(customAccessDeniedHandler)
                 )
                 .addFilterBefore(jwtAuthenticatorFilter(),
                         UsernamePasswordAuthenticationFilter.class)
