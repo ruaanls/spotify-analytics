@@ -25,5 +25,10 @@ spring:
 
 cloud:
   aws:
-    region:
-      static: sa-east-1
+    sqs:
+      enabled: true
+
+app:
+  aws:
+    sqs:
+      queue-name: PaymentQueue

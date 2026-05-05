@@ -1,9 +1,12 @@
 package br.com.spotifyanalytics.infra.config.security;
 
+import br.com.spotifyanalytics.application.exception.ErrorException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
@@ -16,17 +19,13 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        response.setStatus(HttpStatus.FORBIDDEN.value());
-        response.setContentType("application/json");
+        ErrorException error = new ErrorException(HttpStatus.FORBIDDEN, "Acesso exclusivo a usuários do plano PREMIUM. Garanta o seu usando o path /premium");
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 
-        String json = """
-                {
-                    "status": 403,
-                    "mensagem": "Acesso negado! Este recurso é exclusivo para usuários Premium. Faça upgrade do seu plano para continuar."
-                }
-                """;
-
-        response.getWriter().write(json);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonResponse = objectMapper.writeValueAsString(error);
+        response.getWriter().write(jsonResponse);
     }
 }

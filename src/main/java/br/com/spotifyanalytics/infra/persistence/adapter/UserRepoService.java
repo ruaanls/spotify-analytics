@@ -86,5 +86,10 @@ public class UserRepoService implements UserRepoServiceImpl {
 
     }
 
+    @Override
+    public void updateUser(UsuariosJpa usuariosJpa) {
+        this.userRepository.save(usuariosJpa);
+    }
+
 
 }

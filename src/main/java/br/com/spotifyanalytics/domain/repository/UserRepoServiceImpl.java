@@ -19,4 +19,8 @@ public interface UserRepoServiceImpl
     void saveEstatisticasFree(EstatisticasFreeJpa estatisticasFreeJpa);
 
     void saveEstatisticasPremium(EstatisticasPremiumJPA estatisticasPremiumJPA);
+
+    void updateUser(UsuariosJpa usuariosJpa);
+
+
 }

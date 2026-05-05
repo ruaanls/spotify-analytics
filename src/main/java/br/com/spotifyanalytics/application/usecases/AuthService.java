@@ -3,6 +3,7 @@ package br.com.spotifyanalytics.application.usecases;
 import br.com.spotifyanalytics.application.dto.JwtResponseDTO;
 import br.com.spotifyanalytics.application.dto.SpotifyUser;
 import br.com.spotifyanalytics.application.dto.TokenResponse;
+import br.com.spotifyanalytics.application.exception.SpotifyApiException;
 import br.com.spotifyanalytics.application.exception.SpotifyAuthException;
 import br.com.spotifyanalytics.application.service.AuthServiceImpl;
 import br.com.spotifyanalytics.application.service.RedisServiceImpl;
@@ -11,6 +12,7 @@ import br.com.spotifyanalytics.domain.repository.UserRepoServiceImpl;
 import br.com.spotifyanalytics.infra.persistence.entity.UsuariosJpa;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import java.util.Base64;
@@ -101,7 +103,7 @@ public class AuthService implements AuthServiceImpl
         }
         catch (Exception e)
         {
-            throw new SpotifyAuthException();
+            throw new SpotifyApiException("Esse username não pertence a conta que você realizou login. Tente novamente com o username em que o login foi feito no navegador", HttpStatus.FORBIDDEN);
         }
 
     }
