@@ -18,7 +18,7 @@ public class WebClientConfig
     public WebClient ms2WebClient(@Value("${ms2.url}") String ms2Url) {
         HttpClient httpClient = HttpClient.create()
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 2000)
-                .responseTimeout(Duration.ofSeconds(3));
+                .responseTimeout(Duration.ofSeconds(5));
 
         return WebClient.builder()
                 .baseUrl(ms2Url)

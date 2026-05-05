@@ -22,7 +22,7 @@ public class PremiumController
 {
     private final PaymentServiceImpl paymentService;
 
-    @PostMapping()
+    @GetMapping()
     public ResponseEntity<MercadoPagoResponseDTO> loginSpotifyRedirect (@AuthenticationPrincipal String username) throws ExecutionException, InterruptedException {
         return new ResponseEntity<>(paymentService.getLinkPagamento(username), HttpStatus.PERMANENT_REDIRECT);
     }

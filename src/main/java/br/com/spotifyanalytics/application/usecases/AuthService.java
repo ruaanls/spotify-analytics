@@ -27,11 +27,14 @@ public class AuthService implements AuthServiceImpl
     private final WebClient spotifyApiWebClient;
     private final WebClient spotifyAuthWebClient;
 
-    @Value("4501e1f06a704af1a78fec28e752d898")
+    //@Value("4501e1f06a704af1a78fec28e752d898")
+    @Value("${spotify.api.v1.client-id}")
     private String clientId;
-    @Value("8f01c6631d6b4a5091e0973e3fe6a950")
+    //@Value("8f01c6631d6b4a5091e0973e3fe6a950")
+    @Value("${spotify.api.v1.secret}")
     private String clientSecret;
-    @Value("http://127.0.0.1:8080/auth/callback")
+    //@Value("http://127.0.0.1:8080/auth/callback")
+    @Value("${spotify.api.v1.redirecturi}")
     private String redirectUri;
 
     public AuthService(
