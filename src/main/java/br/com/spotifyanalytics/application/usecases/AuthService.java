@@ -3,6 +3,7 @@ package br.com.spotifyanalytics.application.usecases;
 import br.com.spotifyanalytics.application.dto.JwtResponseDTO;
 import br.com.spotifyanalytics.application.dto.SpotifyUser;
 import br.com.spotifyanalytics.application.dto.TokenResponse;
+import br.com.spotifyanalytics.application.exception.SpotifyApiException;
 import br.com.spotifyanalytics.application.exception.SpotifyAuthException;
 import br.com.spotifyanalytics.application.service.AuthServiceImpl;
 import br.com.spotifyanalytics.application.service.RedisServiceImpl;
@@ -11,6 +12,7 @@ import br.com.spotifyanalytics.domain.repository.UserRepoServiceImpl;
 import br.com.spotifyanalytics.infra.persistence.entity.UsuariosJpa;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import java.util.Base64;
@@ -25,11 +27,14 @@ public class AuthService implements AuthServiceImpl
     private final WebClient spotifyApiWebClient;
     private final WebClient spotifyAuthWebClient;
 
-    @Value("4501e1f06a704af1a78fec28e752d898")
+    //@Value("4501e1f06a704af1a78fec28e752d898")
+    @Value("${spotify.api.v1.client-id}")
     private String clientId;
-    @Value("8f01c6631d6b4a5091e0973e3fe6a950")
+    //@Value("8f01c6631d6b4a5091e0973e3fe6a950")
+    @Value("${spotify.api.v1.secret}")
     private String clientSecret;
-    @Value("http://127.0.0.1:8080/auth/callback")
+    //@Value("http://127.0.0.1:8080/auth/callback")
+    @Value("${spotify.api.v1.redirecturi}")
     private String redirectUri;
 
     public AuthService(
@@ -101,7 +106,7 @@ public class AuthService implements AuthServiceImpl
         }
         catch (Exception e)
         {
-            throw new SpotifyAuthException();
+            throw new SpotifyApiException("Esse username não pertence a conta que você realizou login. Tente novamente com o username em que o login foi feito no navegador", HttpStatus.FORBIDDEN);
         }
 
     }

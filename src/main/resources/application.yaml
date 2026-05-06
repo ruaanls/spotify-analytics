@@ -25,5 +25,37 @@ spring:
 
 cloud:
   aws:
-    region:
-      static: sa-east-1
+    sqs:
+      enabled: true
+
+app:
+  aws:
+    sqs:
+      queue-name: PaymentQueue
+
+ms2:
+  url: http://localhost:9090  # local → trocar pra http://ms2-service:8080 no K8s
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      ms2-service:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+
+  timelimiter:
+    instances:
+      ms2-service:
+        timeout-duration: 5s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true       # habilita /actuator/health/liveness e readiness
+      show-details: always

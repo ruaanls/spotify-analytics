@@ -4,6 +4,7 @@ import br.com.spotifyanalytics.application.exception.*;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -35,8 +36,10 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler
     @ExceptionHandler(SpotifyApiException.class)
     private ResponseEntity<ErrorException> spotifyApiHandler(SpotifyApiException exception)
     {
-        ErrorException Exception = new ErrorException(HttpStatus.SERVICE_UNAVAILABLE,exception.getMessage());
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Exception);
+        HttpStatus status = exception.getStatus()
+                .orElse(HttpStatus.BAD_GATEWAY);
+        ErrorException Exception = new ErrorException(status,exception.getMessage());
+        return ResponseEntity.status(status).body(Exception);
     }
 
     @ExceptionHandler(RedisConnectionFailureException.class)
@@ -44,6 +47,13 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler
     {
         ErrorException error = new ErrorException(HttpStatus.SERVICE_UNAVAILABLE, "Serviço temporariamente indisponível. Tente novamente mais tarde.");
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    private ResponseEntity<ErrorException> acessoNegado(AccessDeniedException exception)
+    {
+        ErrorException error = new ErrorException(HttpStatus.FORBIDDEN, "Acesso exclusivo a usuários do plano PREMIUM. Garanta o seu usando o path /premium");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
     @ExceptionHandler(Exception.class)
