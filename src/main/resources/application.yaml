@@ -1,13 +1,21 @@
+server:
+  # OBRIGATÓRIO: Faz o Spring gerar links 'https' no login mesmo estando em 'http' no K8s
+  forward-headers-strategy: framework
 spring:
   config:
     import: "optional:aws-parameterstore:/config/myapp/"
 
   data:
     redis:
-      port: 6379
+      # No modo cluster, usamos 'nodes' em vez de 'host'
+      cluster:
+        nodes: ${spring.data.redis.host}:6379
       ssl:
-        enabled: false
+        enabled: true        # OBRIGATÓRIO para Valkey com criptografia ativa
       timeout: 5s
+      lettuce:
+        extension:
+          native-ssl: true
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -34,7 +42,7 @@ app:
       queue-name: PaymentQueue
 
 ms2:
-  url: http://localhost:9090  # local → trocar pra http://ms2-service:8080 no K8s
+  url: http://payments-service:90  # local → trocar pra http://ms2-service:8080 no K8s
 
 resilience4j:
   circuitbreaker:

@@ -1,0 +1,54 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: meus-servicos-ingress
+  annotations:
+    # O Controller do AWS ALB vai ler isso e criar o LB na AWS pra você
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+spec:
+  rules:
+    - http:
+        paths:
+          # MS1 - Rota de Analytics
+          - path: /analytics
+            pathType: Prefix
+            backend:
+              service:
+                name: estatisticas-service
+                port:
+                  number: 80
+          # MS1 - Rota de Auth
+          - path: /auth
+            pathType: Prefix
+            backend:
+              service:
+                name: estatisticas-service
+                port:
+                  number: 80
+          # MS1 - Rota de User
+          - path: /user
+            pathType: Prefix
+            backend:
+              service:
+                name: estatisticas-service
+                port:
+                  number: 80
+          # MS1 - Rota de Premium (A porta de entrada pública)
+          - path: /premium
+            pathType: Prefix
+            backend:
+              service:
+                name: estatisticas-service
+                port:
+                  number: 80
+
+          - path: /payments/callback
+            pathType: Prefix
+            backend:
+              service:
+                name: payments-service
+                port:
+                  number: 90
