@@ -1,6 +1,7 @@
 package br.com.spotifyanalytics.infra.persistence.adapter;
 
 import br.com.spotifyanalytics.application.dto.SpotifyUser;
+import br.com.spotifyanalytics.application.exception.TokenRedisNotFound;
 import br.com.spotifyanalytics.domain.model.Role;
 import br.com.spotifyanalytics.domain.repository.UserRepoServiceImpl;
 import br.com.spotifyanalytics.infra.persistence.entity.EstatisticasFreeJpa;
@@ -66,7 +67,7 @@ public class UserRepoService implements UserRepoServiceImpl {
         }
         else
         {
-            throw new RuntimeException();
+            throw new TokenRedisNotFound();
         }
 
     }

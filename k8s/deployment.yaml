@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: estatisticas-deployment
+  labels:
+    app: estatisticas
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: estatisticas
+  template:
+    metadata:
+      labels:
+        app: estatisticas
+    spec:
+      serviceAccountName: app-service-account
+      containers:
+        - name: estatisticas
+          image: 582983022531.dkr.ecr.sa-east-1.amazonaws.com/estatisticas-service:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: estatisticas-service
+spec:
+  selector:
+    app: estatisticas
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP

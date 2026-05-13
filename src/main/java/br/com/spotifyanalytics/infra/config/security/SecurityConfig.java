@@ -40,7 +40,7 @@ public class SecurityConfig
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/premium/**").hasRole("PREMIUM")
+                        .requestMatchers("/analytics/premium/**").hasRole("PREMIUM")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
