@@ -61,9 +61,12 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health, prometheus
   endpoint:
     health:
       probes:
         enabled: true       # habilita /actuator/health/liveness e readiness
       show-details: always
+  metrics:
+    tags:
+      application: ms-estatisticas
