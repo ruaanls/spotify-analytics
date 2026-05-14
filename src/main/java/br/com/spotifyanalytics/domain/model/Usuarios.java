@@ -1,13 +1,14 @@
 package br.com.spotifyanalytics.domain.model;
 
-import br.com.spotifyanalytics.infra.persistence.entity.AssinaturasJpa;
+import br.com.spotifyanalytics.infra.persistence.entity.EstatisticasFreeJpa;
+import br.com.spotifyanalytics.infra.persistence.entity.EstatisticasPremiumJPA;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -20,16 +21,16 @@ public class Usuarios
 
     private String spotifyId;
 
-    private String nome;  // mapeado para coluna "name"
+    private String nome;
 
     private String email;
 
+    @Enumerated(EnumType.STRING)
     private Role tipo;
 
     private LocalDateTime criadoEm;
 
-    //private EstatisticasUsuarioJPA estatisticas;
+    private List<EstatisticasFreeJpa> estatisticasFree;
 
-    private List<AssinaturasJpa> assinaturas = new ArrayList<>();
-
+    private List<EstatisticasPremiumJPA> estatisticasPremium;
 }

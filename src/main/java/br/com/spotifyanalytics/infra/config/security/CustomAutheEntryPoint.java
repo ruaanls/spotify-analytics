@@ -27,12 +27,10 @@ public class CustomAutheEntryPoint implements AuthenticationEntryPoint
         Exception storedJwtException = (Exception) request.getAttribute("exception");
 
         if (storedJwtException instanceof TokenExpiredException) {
-            // Token JWT expirado
             error = new ErrorException(HttpStatus.UNAUTHORIZED, "Token JWT expirado, por favor realize o login novamente!");
             writeErrorResponse(response, error);
 
         } else if (storedJwtException instanceof JWTVerificationException) {
-            // Token JWT inválido
             error = new ErrorException(HttpStatus.UNAUTHORIZED, "Token JWT inválido, por favor realize o login novamente!");
             writeErrorResponse(response, error);
 
@@ -60,7 +58,6 @@ public class CustomAutheEntryPoint implements AuthenticationEntryPoint
     }
 
     private boolean isProtectedEndpoint(String requestURI) {
-        // Define quais endpoints são protegidos e precisam de JWT
         return !requestURI.startsWith("/auth/");
 
     }

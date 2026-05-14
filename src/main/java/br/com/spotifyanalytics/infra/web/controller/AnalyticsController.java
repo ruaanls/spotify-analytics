@@ -8,8 +8,6 @@ import br.com.spotifyanalytics.domain.repository.UserRepoServiceImpl;
 import br.com.spotifyanalytics.infra.persistence.entity.EstatisticasFreeJpa;
 import br.com.spotifyanalytics.infra.persistence.entity.EstatisticasPremiumJPA;
 import br.com.spotifyanalytics.infra.persistence.entity.UsuariosJpa;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/analytics")
+@RequestMapping("/api/analytics")
 @RequiredArgsConstructor
 public class AnalyticsController
 {

@@ -14,7 +14,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig
 {
-
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final CustomAutheEntryPoint customAutheEntryPoint;
 

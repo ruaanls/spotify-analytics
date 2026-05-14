@@ -1,16 +1,13 @@
 package br.com.spotifyanalytics.infra.persistence.entity;
 
 import br.com.spotifyanalytics.domain.model.Role;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -39,11 +36,8 @@ public class UsuariosJpa implements UserDetails {
     @Column(name = "criado_em", updatable = false)
     private LocalDateTime criadoEm;
 
-    // substituiu @OneToOne por @OneToMany para suportar histórico
-
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EstatisticasFreeJpa> estatisticasFree;
-
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EstatisticasPremiumJPA> estatisticasPremium;

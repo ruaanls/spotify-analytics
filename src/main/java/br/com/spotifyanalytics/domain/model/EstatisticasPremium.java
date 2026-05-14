@@ -1,7 +1,7 @@
 package br.com.spotifyanalytics.domain.model;
 
-import br.com.spotifyanalytics.infra.persistence.entity.PlanosJPA;
 import br.com.spotifyanalytics.infra.persistence.entity.UsuariosJpa;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,14 +14,18 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Assinaturas
+public class EstatisticasPremium
 {
+
     private Long id;
 
     private UsuariosJpa usuario;
 
-    private PlanosJPA plano;
+    private String faixaMaisPopular;
 
-    private LocalDateTime dataInicio;
+    private String periodoDiaMaisAtivo;
 
+    private String top5Artistas;
+
+    private LocalDateTime registradoEm;
 }
