@@ -4,13 +4,11 @@ import br.com.spotifyanalytics.application.exception.TokenRedisNotFound;
 import br.com.spotifyanalytics.application.service.RedisServiceImpl;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-
 import java.time.Duration;
 
 @Service
 public class RedisService implements RedisServiceImpl
 {
-
     private final RedisTemplate<String, Object> redisTemplate;
     private final Duration TOKEN_TTL = Duration.ofMinutes(58);
 

@@ -1,8 +1,6 @@
 package br.com.spotifyanalytics.application.usecases;
 
-import br.com.spotifyanalytics.application.dto.SpotifyUser;
 import br.com.spotifyanalytics.application.service.TokenServiceImpl;
-import br.com.spotifyanalytics.domain.model.Usuarios;
 import br.com.spotifyanalytics.infra.persistence.entity.UsuariosJpa;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -16,9 +14,8 @@ import java.util.Date;
 @Service
 public class TokenService implements TokenServiceImpl
 {
-
     private final String SECRET = "my-secret-key";
-    private final long Expiration = 3500000;
+    private final long Expiration = 35000;
 
     @Override
     public String generateToken(UsuariosJpa user) {

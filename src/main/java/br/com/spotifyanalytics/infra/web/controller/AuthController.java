@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @Setter
 @RequiredArgsConstructor
 public class AuthController
@@ -25,7 +25,6 @@ public class AuthController
     @GetMapping("/callback")
     public ResponseEntity<String> handleCallback( @RequestParam(required = false) String code,
                                 @RequestParam(required = false) String error){
-
         if (error != null || code == null) {
             return new ResponseEntity<>(
                     "Autorização negada pelo usuário. Por favor, autorize o acesso ao Spotify para continuar.",

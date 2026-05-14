@@ -72,7 +72,6 @@ public class UserRepoService implements UserRepoServiceImpl {
 
     }
 
-
     @Override
     public void saveEstatisticasFree(EstatisticasFreeJpa estatisticasFreeJpa) {
         estatisticasFreeRepository.save(estatisticasFreeJpa);
