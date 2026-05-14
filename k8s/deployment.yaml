@@ -37,10 +37,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: estatisticas-service
+  labels:
+    app: monitorado
 spec:
   selector:
     app: estatisticas
   ports:
-    - port: 80
+    - name: http-metrics
+      port: 80
       targetPort: 8080
   type: ClusterIP
